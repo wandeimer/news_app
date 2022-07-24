@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/bloc/home/search_cubit.dart';
 import 'package:news_app/bloc/navigation/navigation_cubit.dart';
+import 'package:news_app/common/const.dart';
 import 'package:news_app/models/item_model.dart';
 import 'package:news_app/views/widgets/card/card.dart';
+import 'package:news_app/views/widgets/search_setting_button/search_setting_button.dart';
+import 'package:news_app/views/widgets/sort_picker.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -56,6 +59,37 @@ class HomeScreen extends StatelessWidget {
                   ),
                   suffixIcon: const Icon(Icons.search)),
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: BlocBuilder<SearchCubit, SearchState>(builder: (context, snapshot) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SearchSettingButton(
+                    title: "From:",
+                    text: dateFormat.format(context.read<SearchCubit>().startDate),
+                    func: () {
+                      context.read<SearchCubit>().changeEndDate(context);
+                    },
+                  ),
+                  SearchSettingButton(
+                    title: "Sort by:",
+                    text: context.read<SearchCubit>().sortBy.name,
+                    func: () {
+                      sortPicker(context, context.read<SearchCubit>().changeSort);
+                    },
+                  ),
+                  SearchSettingButton(
+                    title: "To:",
+                    text: dateFormat.format(context.read<SearchCubit>().endDate),
+                    func: () {
+                      context.read<SearchCubit>().changeEndDate(context);
+                    },
+                  ),
+                ],
+              );
+            }),
           ),
           BlocBuilder<SearchCubit, SearchState>(builder: (context, snapshot) {
             if (snapshot is SearchLoading) {

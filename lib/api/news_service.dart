@@ -14,26 +14,27 @@ class NewsService {
   }
 
   Future<List<ItemModel>?> getNewsList(
-    String? request,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? sortBy,
+    String request,
+    String startDate,
+    String endDate,
+    String sortBy,
     int page,
   ) async {
     Map<String, dynamic> query = {
       "page": page,
       "pageSize": 20,
     };
-    if (request != null && request.isNotEmpty) {
+    if (request.isNotEmpty) {
       query.addAll({"q": request});
     } else {
       query.addAll({"q": "iOS"});
     }
-    if (sortBy != null && sortBy.isNotEmpty) {
-      query.addAll({"sortBy": sortBy});
-    }
-    // todo
-    // add date change logic
+    query.addAll({
+      "sortBy": sortBy,
+      "from": startDate,
+      "to": endDate,
+      "sortBy": sortBy,
+    });
     List<ItemModel> _result = List<ItemModel>.empty(growable: true);
     try {
       var response = await _dio.get(apiEndpointUrl, queryParameters: query);
