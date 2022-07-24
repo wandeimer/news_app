@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/bloc/home/search_cubit.dart';
+import 'package:news_app/bloc/navigation/navigation_cubit.dart';
 import 'package:news_app/models/item_model.dart';
 import 'package:news_app/views/widgets/card/card.dart';
 
@@ -79,7 +80,12 @@ class HomeScreen extends StatelessWidget {
                       //       child: CircularProgressIndicator(
                       //   ));
                       // }
-                      return NewsCard(data: snapshot.data![index]);
+                      return NewsCard(
+                        data: snapshot.data![index],
+                        navigationFunc: () {
+                          BlocProvider.of<NavigationCubit>(context).showPostDetails(snapshot.data![index]);
+                        },
+                      );
                     },
                     separatorBuilder: (BuildContext context, index) {
                       return const Divider(
