@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/api/news_service.dart';
-import 'package:news_app/bloc/CubitGlobal.dart';
 import 'package:news_app/common/const.dart';
 import 'package:news_app/models/item_model.dart';
 import 'package:news_app/models/sort_by_item_model.dart';
 
 part 'search_state.dart';
 
-class SearchCubit extends CubitGlobal<SearchState> {
+class SearchCubit extends Cubit<SearchState> {
   final NewsService newsService;
   int _page = 1;
-  bool _allPagesLoaded = false;
+  bool allPagesLoaded = false;
   String _request = "";
   DateTime startDate = DateTime.now().toUtc();
   DateTime endDate = DateTime.now().toUtc();
@@ -21,7 +20,7 @@ class SearchCubit extends CubitGlobal<SearchState> {
   SearchCubit(this.newsService) : super(SearchInitial());
 
   void empty() {
-    customEmit(SearchEmpty());
+    emit(SearchEmpty());
   }
 
   void changeSort(SortByItemModel sort) {
@@ -61,9 +60,9 @@ class SearchCubit extends CubitGlobal<SearchState> {
     String? request,
   }) async {
     _page = 1;
-    _allPagesLoaded = false;
+    allPagesLoaded = false;
     _request = request ?? "";
-    customEmit(SearchLoading(_request));
+    emit(SearchLoading(_request));
 
     try {
       final values = await Future.wait([
@@ -78,18 +77,50 @@ class SearchCubit extends CubitGlobal<SearchState> {
 
       List<ItemModel>? newsList = values[0];
       if ((newsList ?? []).isEmpty) {
-        _allPagesLoaded = true;
+        allPagesLoaded = true;
       }
 
       if (state is SearchLoading) {
         if ((state as SearchLoading).request == (request ?? "")) {
           _newsList = newsList ?? [];
-          customEmit(SearchLoaded<List<ItemModel>?>(newsList));
+          emit(SearchLoaded<List<ItemModel>?>(newsList));
         }
       }
       return;
     } catch (e) {
-      customEmit(SearchError(message: e.toString()));
+      emit(SearchError(message: e.toString()));
     }
+  }
+
+  void loadMoreNews() async {
+    if (state is SearchLoaded) {
+      _page += 1;
+      emit(SearchLoadingMore(_newsList, _request));
+
+      try {
+        List<ItemModel>? newsList = await newsService.getNewsList(
+          _request,
+          dateFormat.format(startDate),
+          dateFormat.format(endDate),
+          sortBy.key,
+          _page,
+        );
+
+        if ((newsList ?? []).isEmpty) {
+          allPagesLoaded = true;
+        }
+
+        if (state is SearchLoadingMore) {
+          if ((state as SearchLoadingMore).request == (_request)) {
+            _newsList.addAll(newsList ?? []);
+            emit(SearchLoaded(_newsList));
+          }
+        }
+        return;
+      } catch (e) {
+        emit(SearchError(message: e.toString()));
+      }
+    }
+    return;
   }
 }

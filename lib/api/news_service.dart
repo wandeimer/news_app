@@ -33,16 +33,15 @@ class NewsService {
       "sortBy": sortBy,
       "from": startDate,
       "to": endDate,
-      "sortBy": sortBy,
     });
-    List<ItemModel> _result = List<ItemModel>.empty(growable: true);
+    List<ItemModel> result = List<ItemModel>.empty(growable: true);
     try {
       var response = await _dio.get(apiEndpointUrl, queryParameters: query);
       if (response.statusCode == 200) {
         for (var item in response.data["articles"]) {
-          _result.add(ItemModel.fromJson(item));
+          result.add(ItemModel.fromJson(item));
         }
-        return _result;
+        return result;
       } else {
         return null;
       }

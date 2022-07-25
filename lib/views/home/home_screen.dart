@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/bloc/home/search_cubit.dart';
 import 'package:news_app/bloc/navigation/navigation_cubit.dart';
 import 'package:news_app/common/const.dart';
-import 'package:news_app/models/item_model.dart';
 import 'package:news_app/views/widgets/card/card.dart';
 import 'package:news_app/views/widgets/search_setting_button/search_setting_button.dart';
 import 'package:news_app/views/widgets/sort_picker.dart';
@@ -100,20 +99,17 @@ class HomeScreen extends StatelessWidget {
                   color: Color(0xfffea3a0),
                 )),
               );
-            } else if (snapshot is SearchLoaded<List<ItemModel>?>) {
+            } else if (snapshot is SearchLoaded || snapshot is SearchLoadingMore) {
               if (snapshot.data == null) {
                 return const Text("ERROR LOADING NEWS");
               } else {
                 return Expanded(
                   child: ListView.separated(
                     itemBuilder: (BuildContext context, index) {
-                      // todo lasy load
-                      // if (index == snapshot.data!.length) {
-                      //   context.read<SearchCubit>().loadMoreNews();
-                      //   return const Center(
-                      //       child: CircularProgressIndicator(
-                      //   ));
-                      // }
+                      if (index == snapshot.data!.length) {
+                        context.read<SearchCubit>().loadMoreNews();
+                        return const Center(child: CircularProgressIndicator());
+                      }
                       return NewsCard(
                         data: snapshot.data![index],
                         navigationFunc: () {
@@ -129,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                         endIndent: 10,
                       );
                     },
-                    itemCount: snapshot.data!.length,
+                    itemCount: snapshot.data!.length + (context.read<SearchCubit>().allPagesLoaded ? 0 : 1),
                   ),
                 );
               }
